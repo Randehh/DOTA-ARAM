@@ -5,32 +5,56 @@
 	"Version"		"1"
 
 	"custom_haste_rune"
-	{
-	    "Duration"      "10"
-	    "Properties"
-	    {
-	        "MODIFIER_PROPERTY_MOVESPEED_MAX"      "522"
-	        "MODIFIER_PROPERTY_ATTACKSPEED_BONUS_CONSTANT"      "25"
-	    }
+  	{
+	    "AbilityBehavior" 		"DOTA_ABILITY_BEHAVIOR_PASSIVE"
+		"BaseClass" 					"ability_datadriven"
+		"AbilityTextureName"            "rubick_empty1"
+	    "MaxLevel"                      "1"
+	    
+	    "Modifiers"
+		{
+		    "Duration"      "10"
+		    "Properties"
+		    {
+		        "MODIFIER_PROPERTY_MOVESPEED_MAX"      "522"
+		        "MODIFIER_PROPERTY_ATTACKSPEED_BONUS_CONSTANT"      "25"
+		    }
+		}
 	}
 
 	"custom_dd_rune"
-	{
-	    "Duration"      "15"
-	    "Properties"
-	    {
-	        "MODIFIER_PROPERTY_DAMAGEOUTGOING_PERCENTAGE"      "100"
-	    }
+  	{
+	    "AbilityBehavior" 		"DOTA_ABILITY_BEHAVIOR_PASSIVE"
+		"BaseClass" 					"ability_datadriven"
+		"AbilityTextureName"            "rubick_empty1"
+	    "MaxLevel"                      "1"
+	    
+	    "Modifiers"
+		{
+		    "Duration"      "10"
+		    "Properties"
+		    {
+				"MODIFIER_PROPERTY_DAMAGEOUTGOING_PERCENTAGE"      "100"
+		    }
+		}
 	}
 
 	"custom_invisibility_rune"
-	{
-	    "Duration"      "20"
-	    "Properties"
-	    {
+  	{
+	    "AbilityBehavior" 		"DOTA_ABILITY_BEHAVIOR_PASSIVE"
+		"BaseClass" 					"ability_datadriven"
+		"AbilityTextureName"            "rubick_empty1"
+	    "MaxLevel"                      "1"
+	    
+	    "Modifiers"
+		{
+		    "Duration"      "10"
+		    "Properties"
+		    {
 	        "MODIFIER_PROPERTY_INVISIBILITY_LEVEL"      "1"
 	        "MODIFIER_PROPERTY_MOVESPEED_BONUS_PERCENTAGE"      "25"
-	    }
+		    }
+		}
 	}
 
 	"example_ability"

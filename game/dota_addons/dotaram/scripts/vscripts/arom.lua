@@ -131,7 +131,9 @@ function GameMode:OnHeroInGame(hero)
 
   -- This line for example will set the starting gold of every hero to 500 unreliable gold
   hero:SetGold(1000, false)
-  hero:SetLevel(4)
+  hero:HeroLevelUp(false)
+  hero:HeroLevelUp(false)
+  hero:HeroLevelUp(true)
 
 
   --[[ --These lines if uncommented will replace the W ability of any hero that loads into the game
@@ -604,16 +606,8 @@ function GameMode:CaptureGameMode()
 
     --GameRules:GetGameModeEntity():SetThink( "Think", self, "GlobalThink", 2 )
 
-    self:SetupMultiTeams()
     self:OnFirstPlayerLoaded()
   end 
-end
-
--- Multiteam support is unfinished currently
-function GameMode:SetupMultiTeams()
-  MultiTeam:start()
-  MultiTeam:CreateTeam("team1")
-  MultiTeam:CreateTeam("team2")
 end
 
 -- This function is called 1 to 2 times as the player connects initially but before they 

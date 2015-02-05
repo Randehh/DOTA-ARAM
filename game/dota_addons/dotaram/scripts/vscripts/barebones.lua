@@ -345,11 +345,11 @@ function GameMode:OnRuneActivated (keys)
   local rune = keys.rune
 
   if(rune == 0) then --Double damage
-
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_dd_rune")
   end
 
   if(rune == 1) then --Haste
-
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_haste_rune")
   end
 
   if(rune == 2) then --Illusions
@@ -357,7 +357,7 @@ function GameMode:OnRuneActivated (keys)
   end
 
   if(rune == 3) then --Invisibility
-
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
   end
 
   if(rune == 4) then --Regen

@@ -1,6 +1,4 @@
-local heroes = require('herolist')
-
-print ('[BAREBONES] barebones.lua' )
+print ('[AROM] AROM.lua' )
 
 ENABLE_HERO_RESPAWN = true              -- Should the heroes automatically respawn on a timer or stay dead until manually respawned
 UNIVERSAL_SHOP_MODE = true             -- Should the main shop contain Secret Shop items as well as regular items
@@ -57,7 +55,7 @@ RANDOMEDHEROES = "derp"
 
 -- Generated from template
 if GameMode == nil then
-    print ( '[BAREBONES] creating barebones game mode' )
+    print ( '[AROM] creating AROM game mode' )
     GameMode = class({})
 end
 
@@ -78,7 +76,7 @@ end
   holdout).
 ]]
 function GameMode:PostLoadPrecache()
-  print("[BAREBONES] Performing Post-Load precache")    
+  print("[AROM] Performing Post-Load precache")    
   --PrecacheItemByNameAsync("item_example_item", function(...) end)
   --PrecacheItemByNameAsync("example_ability", function(...) end)
 
@@ -92,7 +90,7 @@ end
   It can be used to initialize state that isn't initializeable in InitGameMode() but needs to be done before everyone loads in.
 ]]
 function GameMode:OnFirstPlayerLoaded()
-  print("[BAREBONES] First Player has loaded")
+  print("[AROM] First Player has loaded")
 end
 
 --[[
@@ -100,7 +98,7 @@ end
   It can be used to initialize non-hero player state or adjust the hero selection (i.e. force random etc)
 ]]
 function GameMode:OnAllPlayersLoaded()
-  print("[BAREBONES] All Players have loaded into the game")
+  print("[AROM] All Players have loaded into the game")
 
 	for _,ply in pairs(connectedPlayers) do
 	    local playerID = ply:GetPlayerID()
@@ -119,7 +117,7 @@ end
   The hero parameter is the hero entity that just spawned in
 ]]
 function GameMode:OnHeroInGame(hero)
-  print("[BAREBONES] Hero spawned in game for first time -- " .. hero:GetUnitName())
+  print("[AROM] Hero spawned in game for first time -- " .. hero:GetUnitName())
 
   --[[ Multiteam configuration, currently unfinished
 
@@ -132,11 +130,9 @@ function GameMode:OnHeroInGame(hero)
   MultiTeam:SetPlayerTeam(playerID, team)]]
 
   -- This line for example will set the starting gold of every hero to 500 unreliable gold
-  hero:SetGold(500, false)
+  hero:SetGold(1000, false)
+  hero:SetLevel(4)
 
-  -- These lines will create an item and add it to the player, effectively ensuring they start with the item
-  local item = CreateItem("item_multiteam_action", hero, hero)
-  hero:AddItem(item)
 
   --[[ --These lines if uncommented will replace the W ability of any hero that loads into the game
     --with the "example_ability" ability
@@ -152,7 +148,7 @@ end
   is useful for starting any game logic timers/thinkers, beginning the first round, etc.
 ]]
 function GameMode:OnGameInProgress()
-  print("[BAREBONES] The game has officially begun")
+  print("[AROM] The game has officially begun")
 
   --[[Timers:CreateTimer(0.25, -- Start this timer 30 game-time seconds later
   function()
@@ -166,7 +162,7 @@ end
 
 -- Cleanup a player when they leave
 function GameMode:OnDisconnect(keys)
-  print('[BAREBONES] Player Disconnected ' .. tostring(keys.userid))
+  print('[AROM] Player Disconnected ' .. tostring(keys.userid))
   PrintTable(keys)
 
   local name = keys.name
@@ -177,7 +173,7 @@ function GameMode:OnDisconnect(keys)
 end
 -- The overall game state has changed
 function GameMode:OnGameRulesStateChange(keys)
-  print("[BAREBONES] GameRules State Changed")
+  print("[AROM] GameRules State Changed")
   PrintTable(keys)
 
   local newState = GameRules:State_Get()
@@ -209,7 +205,7 @@ end
 
 -- An NPC has spawned somewhere in game.  This includes heroes
 function GameMode:OnNPCSpawned(keys)
-  print("[BAREBONES] NPC Spawned")
+  print("[AROM] NPC Spawned")
   PrintTable(keys)
   local npc = EntIndexToHScript(keys.entindex)
 
@@ -222,7 +218,7 @@ end
 -- An entity somewhere has been hurt.  This event fires very often with many units so don't do too many expensive
 -- operations here
 function GameMode:OnEntityHurt(keys)
-  --print("[BAREBONES] Entity Hurt")
+  --print("[AROM] Entity Hurt")
   --PrintTable(keys)
   local entCause = EntIndexToHScript(keys.entindex_attacker)
   local entVictim = EntIndexToHScript(keys.entindex_killed)
@@ -230,7 +226,7 @@ end
 
 -- An item was picked up off the ground
 function GameMode:OnItemPickedUp(keys)
-  print ( '[BAREBONES] OnItemPurchased' )
+  print ( '[AROM] OnItemPurchased' )
   PrintTable(keys)
 
   local heroEntity = EntIndexToHScript(keys.HeroEntityIndex)
@@ -242,13 +238,13 @@ end
 -- A player has reconnected to the game.  This function can be used to repaint Player-based particles or change
 -- state as necessary
 function GameMode:OnPlayerReconnect(keys)
-  print ( '[BAREBONES] OnPlayerReconnect' )
+  print ( '[AROM] OnPlayerReconnect' )
   PrintTable(keys) 
 end
 
 -- An item was purchased by a player
 function GameMode:OnItemPurchased( keys )
-  print ( '[BAREBONES] OnItemPurchased' )
+  print ( '[AROM] OnItemPurchased' )
   PrintTable(keys)
 
   -- The playerID of the hero who is buying something
@@ -265,7 +261,7 @@ end
 
 -- An ability was used by a player
 function GameMode:OnAbilityUsed(keys)
-  print('[BAREBONES] AbilityUsed')
+  print('[AROM] AbilityUsed')
   PrintTable(keys)
 
   local player = EntIndexToHScript(keys.PlayerID)
@@ -274,7 +270,7 @@ end
 
 -- A non-player entity (necro-book, chen creep, etc) used an ability
 function GameMode:OnNonPlayerUsedAbility(keys)
-  print('[BAREBONES] OnNonPlayerUsedAbility')
+  print('[AROM] OnNonPlayerUsedAbility')
   PrintTable(keys)
 
   local abilityname=  keys.abilityname
@@ -282,7 +278,7 @@ end
 
 -- A player changed their name
 function GameMode:OnPlayerChangedName(keys)
-  print('[BAREBONES] OnPlayerChangedName')
+  print('[AROM] OnPlayerChangedName')
   PrintTable(keys)
 
   local newName = keys.newname
@@ -291,7 +287,7 @@ end
 
 -- A player leveled up an ability
 function GameMode:OnPlayerLearnedAbility( keys)
-  print ('[BAREBONES] OnPlayerLearnedAbility')
+  print ('[AROM] OnPlayerLearnedAbility')
   PrintTable(keys)
 
   local player = EntIndexToHScript(keys.player)
@@ -300,7 +296,7 @@ end
 
 -- A channelled ability finished by either completing or being interrupted
 function GameMode:OnAbilityChannelFinished(keys)
-  print ('[BAREBONES] OnAbilityChannelFinished')
+  print ('[AROM] OnAbilityChannelFinished')
   PrintTable(keys)
 
   local abilityname = keys.abilityname
@@ -309,7 +305,7 @@ end
 
 -- A player leveled up
 function GameMode:OnPlayerLevelUp(keys)
-  print ('[BAREBONES] OnPlayerLevelUp')
+  print ('[AROM] OnPlayerLevelUp')
   PrintTable(keys)
 
   local player = EntIndexToHScript(keys.player)
@@ -318,7 +314,7 @@ end
 
 -- A player last hit a creep, a tower, or a hero
 function GameMode:OnLastHit(keys)
-  print ('[BAREBONES] OnLastHit')
+  print ('[AROM] OnLastHit')
   PrintTable(keys)
 
   local isFirstBlood = keys.FirstBlood == 1
@@ -329,7 +325,7 @@ end
 
 -- A tree was cut down by tango, quelling blade, etc
 function GameMode:OnTreeCut(keys)
-  print ('[BAREBONES] OnTreeCut')
+  print ('[AROM] OnTreeCut')
   PrintTable(keys)
 
   local treeX = keys.tree_x
@@ -338,7 +334,7 @@ end
 
 -- A rune was activated by a player
 function GameMode:OnRuneActivated (keys)
-  print ('[BAREBONES] OnRuneActivated')
+  print ('[AROM] OnRuneActivated')
   PrintTable(keys)
 
   local player = PlayerResource:GetPlayer(keys.PlayerID)
@@ -383,7 +379,7 @@ end
 
 -- A player took damage from a tower
 function GameMode:OnPlayerTakeTowerDamage(keys)
-  print ('[BAREBONES] OnPlayerTakeTowerDamage')
+  print ('[AROM] OnPlayerTakeTowerDamage')
   PrintTable(keys)
 
   local player = PlayerResource:GetPlayer(keys.PlayerID)
@@ -392,7 +388,7 @@ end
 
 -- A player picked a hero
 function GameMode:OnPlayerPickHero(keys)
-  print ('[BAREBONES] OnPlayerPickHero')
+  print ('[AROM] OnPlayerPickHero')
   PrintTable(keys)
 
   local heroClass = keys.hero
@@ -402,7 +398,7 @@ end
 
 -- A player killed another player in a multi-team context
 function GameMode:OnTeamKillCredit(keys)
-  print ('[BAREBONES] OnTeamKillCredit')
+  print ('[AROM] OnTeamKillCredit')
   PrintTable(keys)
 
   local killerPlayer = PlayerResource:GetPlayer(keys.killer_userid)
@@ -413,7 +409,7 @@ end
 
 -- An entity died
 function GameMode:OnEntityKilled( keys )
-  print( '[BAREBONES] OnEntityKilled Called' )
+  print( '[AROM] OnEntityKilled Called' )
   PrintTable( keys )
   
   -- The Unit that was Killed
@@ -455,7 +451,7 @@ end
 -- It can be used to pre-initialize any values/tables that will be needed later
 function GameMode:InitGameMode()
   GameMode = self
-  print('[BAREBONES] Starting to load Barebones gamemode...')
+  print('[AROM] Starting to load AROM gamemode...')
 
   -- Setup rules
   GameRules:SetHeroRespawnEnabled( ENABLE_HERO_RESPAWN )
@@ -474,9 +470,9 @@ function GameMode:InitGameMode()
   GameRules:SetCreepMinimapIconScale( MINIMAP_CREEP_ICON_SIZE )
   GameRules:SetRuneMinimapIconScale( MINIMAP_RUNE_ICON_SIZE )
   GameRules:GetGameModeEntity():SetThink( "OnThink", self, "GlobalThink", 0 )
-  print('[BAREBONES] GameRules set')
+  print('[AROM] GameRules set')
 
-  InitLogFile( "log/barebones.txt","")
+  InitLogFile( "log/AROM.txt","")
 
   -- Event Hooks
   -- All of these events can potentially be fired by the game, though only the uncommented ones have had
@@ -529,7 +525,7 @@ function GameMode:InitGameMode()
       Timers:CreateTimer('assign_fakes', {
         useGameTime = false,
         endTime = Time(),
-        callback = function(barebones, args)
+        callback = function(AROM, args)
           local userID = 20
           for i=0, 9 do
             userID = userID + 1
@@ -577,7 +573,7 @@ function GameMode:InitGameMode()
 
   self.bSeenWaitForPlayers = false
 
-  print('[BAREBONES] Done loading Barebones gamemode!\n\n')
+  print('[AROM] Done loading AROM gamemode!\n\n')
 end
 
 mode = nil
@@ -623,7 +619,7 @@ end
 -- This function is called 1 to 2 times as the player connects initially but before they 
 -- have completely connected
 function GameMode:PlayerConnect(keys)
-  print('[BAREBONES] PlayerConnect')
+  print('[AROM] PlayerConnect')
   PrintTable(keys)
   
   if keys.bot == 1 then
@@ -634,7 +630,7 @@ end
 
 -- This function is called once when the player fully connects and becomes "Ready" during Loading
 function GameMode:OnConnectFull(keys)
-  print ('[BAREBONES] OnConnectFull')
+  print ('[AROM] OnConnectFull')
   PrintTable(keys)
   GameMode:CaptureGameMode()
   

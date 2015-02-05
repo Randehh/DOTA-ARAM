@@ -4,7 +4,7 @@ require('util')
 require('timers')
 require('physics')
 require('multiteam')
-require('barebones')
+require('arom')
 
 function Precache( context )
 	--[[
@@ -15,7 +15,7 @@ function Precache( context )
 		See GameMode:PostLoadPrecache() in barebones.lua for more information
 		]]
 
-		print("[BAREBONES] Performing pre-load precache")
+		print("[AROM] Performing pre-load precache")
 
 		-- Particles can be precached individually or by folder
 		-- It it likely that precaching a single particle system will precache all of its children, but this may not be guaranteed

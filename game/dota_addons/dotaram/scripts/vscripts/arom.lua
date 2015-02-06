@@ -9,8 +9,8 @@ PRE_GAME_TIME = 45.0                    -- How long after people select their he
 POST_GAME_TIME = 60.0                   -- How long should we let people look at the scoreboard before closing the server automatically?
 TREE_REGROW_TIME = 60.0                 -- How long should it take individual trees to respawn after being cut down/destroyed?
 
-GOLD_PER_TICK = 100                     -- How much gold should players get per tick?
-GOLD_TICK_TIME = 5                      -- How long should we wait in seconds between gold ticks?
+GOLD_PER_TICK = 3                       -- How much gold should players get per tick?
+GOLD_TICK_TIME = 2                      -- How long should we wait in seconds between gold ticks?
 
 RECOMMENDED_BUILDS_DISABLED = false     -- Should we disable the recommened builds for heroes (Note: this is not working currently I believe)
 CAMERA_DISTANCE_OVERRIDE = 1134.0        -- How far out should we allow the camera to go?  1134 is the default in Dota
@@ -20,9 +20,9 @@ MINIMAP_CREEP_ICON_SIZE = 1             -- What icon size should we use for cree
 MINIMAP_RUNE_ICON_SIZE = 1              -- What icon size should we use for runes?
 
 RUNE_SPAWN_TIME = 5                    -- How long in seconds should we wait between rune spawns?
-CUSTOM_BUYBACK_COST_ENABLED = true      -- Should we use a custom buyback cost setting?
-CUSTOM_BUYBACK_COOLDOWN_ENABLED = true  -- Should we use a custom buyback time?
-BUYBACK_ENABLED = false                 -- Should we allow people to buyback when they die?
+CUSTOM_BUYBACK_COST_ENABLED = false      -- Should we use a custom buyback cost setting?
+CUSTOM_BUYBACK_COOLDOWN_ENABLED = false  -- Should we use a custom buyback time?
+BUYBACK_ENABLED = true                 -- Should we allow people to buyback when they die?
 
 DISABLE_FOG_OF_WAR_ENTIRELY = false      -- Should we disable fog of war entirely for both teams?
 --USE_STANDARD_DOTA_BOT_THINKING = false  -- Should we have bots act like they would in Dota? (This requires 3 lanes, normal items, etc)
@@ -41,17 +41,42 @@ KILLS_TO_END_GAME_FOR_TEAM = 50         -- How many kills for a team should sign
 
 USE_CUSTOM_HERO_LEVELS = false           -- Should we allow heroes to have custom levels?
 MAX_LEVEL = 50                          -- What level should we let heroes get to?
-USE_CUSTOM_XP_VALUES = false             -- Should we use custom XP values to level up heroes, or the default Dota numbers?
+USE_CUSTOM_XP_VALUES = true             -- Should we use custom XP values to level up heroes, or the default Dota numbers?
 
 -- Fill this table up with the required XP per level if you want to change it
-XP_PER_LEVEL_TABLE = {}
-for i=1,MAX_LEVEL do
-  XP_PER_LEVEL_TABLE[i] = i * 100
-end
+XP_PER_LEVEL_TABLE = {
+	[1] = 100,
+	[2] = 150,
+	[3] = 200,
+	[4] = 250,
+	[5] = 300,
+	[6] = 350,
+	[7] = 400,
+	[8] = 450,
+	[9] = 500,
+	[10] = 550,
+	[11] = 600,
+	[12] = 650,
+	[13] = 700,
+	[14] = 750,
+	[15] = 800,
+	[16] = 850,
+	[17] = 900,
+	[18] = 950,
+	[19] = 100,
+	[20] = 100,
+	[21] = 100,
+	[22] = 100,
+	[23] = 100,
+	[24] = 100,
+	[25] = 100
+}
+
+PrintTable(XP_PER_LEVEL_TABLE)
 
 -- Random selection stuff
 local connectedPlayers = {}
-RANDOMEDHEROES = "derp"
+local selectedHeroes = {}
 
 -- Generated from template
 if GameMode == nil then
@@ -105,6 +130,7 @@ function GameMode:OnAllPlayersLoaded()
 	    if PlayerResource:IsValidPlayerID(playerID) and ply:GetAssignedHero() == nil then
 	    	ply:MakeRandomHeroSelection()
 	    	PlayerResource:SetHasRepicked(playerID)
+	    	selectedHeroes[playerID] = ply:GetAssignedHero()
 	    end
 	end
 end
@@ -131,10 +157,10 @@ function GameMode:OnHeroInGame(hero)
 
   -- This line for example will set the starting gold of every hero to 500 unreliable gold
   hero:SetGold(1000, false)
-  hero:HeroLevelUp(false)
-  hero:HeroLevelUp(false)
-  hero:HeroLevelUp(true)
-
+  --hero:HeroLevelUp(false) --THIS SHIT MAKES YOU GET NO EXPERIENCE
+  --hero:HeroLevelUp(false)
+  --hero:HeroLevelUp(true)
+  hero:AddExperience(900, false, false)
 
   --[[ --These lines if uncommented will replace the W ability of any hero that loads into the game
     --with the "example_ability" ability
@@ -343,11 +369,18 @@ function GameMode:OnRuneActivated (keys)
   local rune = keys.rune
 
   if(rune == 0) then --Double damage
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_dd_rune")
+  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveAbility(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):GetAbilityName())
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune"):SetLevel(1)
+    PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune"), keys.PlayerID)
   end
 
   if(rune == 1) then --Haste
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_haste_rune")
+  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveAbility(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):GetAbilityName())
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
+  	local runeSpell = PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune")
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):SetLevel(1)
+    PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0), keys.PlayerID)
   end
 
   if(rune == 2) then --Illusions
@@ -355,7 +388,11 @@ function GameMode:OnRuneActivated (keys)
   end
 
   if(rune == 3) then --Invisibility
+  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveAbility(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):GetAbilityName())
   	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
+  	local runeSpell = PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune")
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):SetLevel(1)
+    PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0), keys.PlayerID)
   end
 
   if(rune == 4) then --Regen
@@ -483,7 +520,7 @@ function GameMode:InitGameMode()
   ListenToGameEvent('dota_player_gained_level', Dynamic_Wrap(GameMode, 'OnPlayerLevelUp'), self)
   ListenToGameEvent('dota_ability_channel_finished', Dynamic_Wrap(GameMode, 'OnAbilityChannelFinished'), self)
   ListenToGameEvent('dota_player_learned_ability', Dynamic_Wrap(GameMode, 'OnPlayerLearnedAbility'), self)
-  ListenToGameEvent('entity_killed', Dynamic_Wrap(GameMode, 'OnEntityKilled'), self)
+  --ListenToGameEvent('entity_killed', Dynamic_Wrap(GameMode, 'OnEntityKilled'), self)
   ListenToGameEvent('player_connect_full', Dynamic_Wrap(GameMode, 'OnConnectFull'), self)
   ListenToGameEvent('player_disconnect', Dynamic_Wrap(GameMode, 'OnDisconnect'), self)
   ListenToGameEvent('dota_item_purchased', Dynamic_Wrap(GameMode, 'OnItemPurchased'), self)
@@ -494,7 +531,7 @@ function GameMode:InitGameMode()
   ListenToGameEvent('dota_rune_activated_server', Dynamic_Wrap(GameMode, 'OnRuneActivated'), self)
   ListenToGameEvent('dota_player_take_tower_damage', Dynamic_Wrap(GameMode, 'OnPlayerTakeTowerDamage'), self)
   ListenToGameEvent('tree_cut', Dynamic_Wrap(GameMode, 'OnTreeCut'), self)
-  ListenToGameEvent('entity_hurt', Dynamic_Wrap(GameMode, 'OnEntityHurt'), self)
+  --ListenToGameEvent('entity_hurt', Dynamic_Wrap(GameMode, 'OnEntityHurt'), self)
   ListenToGameEvent('player_connect', Dynamic_Wrap(GameMode, 'PlayerConnect'), self)
   ListenToGameEvent('dota_player_used_ability', Dynamic_Wrap(GameMode, 'OnAbilityUsed'), self)
   ListenToGameEvent('game_rules_state_change', Dynamic_Wrap(GameMode, 'OnGameRulesStateChange'), self)
@@ -666,17 +703,7 @@ end
 
 --Reconnect players
 function GameMode:OnThink()
-  print("Checking for hero " .. RANDOMEDHEROES)
-    for _,hero in pairs( Entities:FindAllByClassname(RANDOMEDHEROES)) do
-      if hero:GetPlayerOwnerID() == -1 then
-        local id = hero:GetPlayerOwner():GetPlayerID()
-        if id ~= -1 then
-          print("Reconnecting hero for player " .. id)
-          hero:SetControllableByPlayer(id, true)
-          hero:SetPlayerID(id)
-        end
-      end
-    end
+  
 end
 
 --require('eventtest')

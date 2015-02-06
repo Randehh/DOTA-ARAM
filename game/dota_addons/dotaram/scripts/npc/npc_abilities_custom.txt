@@ -4,9 +4,6 @@
 {
 	"Version"		"1"
 
-		//=================================================================================================================
-	// Dark Seer: Surge
-	//=================================================================================================================
 	"custom_haste_rune"
 	{
 		// General
@@ -89,19 +86,45 @@
 
 	"custom_invisibility_rune"
   	{
-	    "AbilityBehavior" 		"DOTA_ABILITY_BEHAVIOR_PASSIVE"
-		"BaseClass" 					"ability_datadriven"
+		"AbilityBehavior" 		"DOTA_ABILITY_BEHAVIOR_UNIT_TARGET"
+		"AbilityUnitTargetTeam"		"DOTA_UNIT_TARGET_TEAM_FRIENDLY"
+		"AbilityUnitTargetType"		"DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC"  
+		"SpellImmunityType"		"SPELL_IMMUNITY_ALLIES_YES"
+		"BaseClass" 			"ability_datadriven"
 		"AbilityTextureName"            "rubick_empty1"
-	    "MaxLevel"                      "1"
-	    
-	    "Modifiers"
+		"MaxLevel"                      "1"
+
+		"OnSpellStart"
 		{
-		    "Duration"      "10"
-		    "Properties"
+			"ApplyModifier"
+			{
+				"Target"	"CASTER"
+				"ModifierName"	"modifiers_buff"
+			}
+
+		}
+
+		"Modifiers"
+		{
+		    "modifiers_buff"
 		    {
-	        "MODIFIER_PROPERTY_INVISIBILITY_LEVEL"      "1"
-	        "MODIFIER_PROPERTY_MOVESPEED_BONUS_PERCENTAGE"      "25"
+			"IsDebuff"	"0"
+			"Duration"      "%duration"
+			"Properties"
+			{
+	        		"MODIFIER_PROPERTY_INVISIBILITY_LEVEL"      "100"
+	        		"MODIFIER_PROPERTY_MOVESPEED_BONUS_PERCENTAGE"      "25"
+			}
 		    }
+		}
+
+		"AbilitySpecial"
+		{
+			"01"
+			{
+				"var_type"				"FIELD_FLOAT"
+				"duration"				"10"
+			}
 		}
 	}
 

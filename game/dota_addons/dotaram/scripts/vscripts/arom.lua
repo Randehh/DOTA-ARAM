@@ -370,17 +370,17 @@ function GameMode:OnRuneActivated (keys)
 
   if(rune == 0) then --Double damage
   	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveAbility(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):GetAbilityName())
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune"):SetLevel(1)
-    PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune"), keys.PlayerID)
+  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
+  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune"):SetLevel(1)
+    --PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune"), keys.PlayerID)
   end
 
   if(rune == 1) then --Haste
   	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveAbility(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):GetAbilityName())
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
-  	local runeSpell = PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune")
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):SetLevel(1)
-    PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0), keys.PlayerID)
+  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
+  	--local runeSpell = PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune")
+  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):SetLevel(1)
+    --PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0), keys.PlayerID)
   end
 
   if(rune == 2) then --Illusions
@@ -389,10 +389,10 @@ function GameMode:OnRuneActivated (keys)
 
   if(rune == 3) then --Invisibility
   	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveAbility(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):GetAbilityName())
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
-  	local runeSpell = PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune")
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):SetLevel(1)
-    PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0), keys.PlayerID)
+  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
+  	--local runeSpell = PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune")
+  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):SetLevel(1)
+    --PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0), keys.PlayerID)
   end
 
   if(rune == 4) then --Regen

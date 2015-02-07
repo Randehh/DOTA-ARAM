@@ -72,12 +72,12 @@ XP_PER_LEVEL_TABLE = {
 	[25] = 100
 }
 
-PrintTable(XP_PER_LEVEL_TABLE)
-
 -- Random selection stuff
 local connectedPlayers = {}
 local selectedHeroes = {}
-local pickingPlayer = {}
+local repickedPlayer = {}
+local currentRuneSpawnTime = 0
+local activeRunes = {}
 
 -- Generated from template
 if GameMode == nil then
@@ -129,7 +129,6 @@ function GameMode:OnAllPlayersLoaded()
 	for _,ply in pairs(connectedPlayers) do
 	    local playerID = ply:GetPlayerID()
 	    if PlayerResource:IsValidPlayerID(playerID) and ply:GetAssignedHero() == nil then
-	    	table.insert(pickingPlayer, ply)
 	    	ply:MakeRandomHeroSelection()
 	    	selectedHeroes[playerID] = ply:GetAssignedHero()
 	    	--PlayerResource:SetHasRepicked(playerID)
@@ -159,9 +158,6 @@ function GameMode:OnHeroInGame(hero)
 
   -- This line for example will set the starting gold of every hero to 500 unreliable gold
   hero:SetGold(1000, false)
-  --hero:HeroLevelUp(false) --THIS SHIT MAKES YOU GET NO EXPERIENCE
-  --hero:HeroLevelUp(false)
-  --hero:HeroLevelUp(true)
   hero:AddExperience(900, false, false)
 
   --[[ --These lines if uncommented will replace the W ability of any hero that loads into the game
@@ -263,6 +259,52 @@ function GameMode:OnItemPickedUp(keys)
   local itemEntity = EntIndexToHScript(keys.ItemEntityIndex)
   local player = PlayerResource:GetPlayer(keys.PlayerID)
   local itemname = keys.itemname
+
+  if(itemname == "item_custom_rune_doubledamage") then --Double damage
+  	itemEntity:ApplyDataDrivenModifier(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID), "modifier_doubledamage", {})
+
+  end
+
+  if(itemname == "item_custom_rune_haste") then --Haste
+	itemEntity:ApplyDataDrivenModifier(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID), "modifier_haste", {})
+  end
+
+  if(rune == 2) then --Illusions
+
+  end
+
+  if(itemname == "item_custom_rune_invis") then --Invisibility
+	itemEntity:ApplyDataDrivenModifier(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID), "modifier_invis", {})
+	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddNewModifier(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID), "modifier_invisible", {duration = 15}) 
+  end
+
+  if(itemname == "item_custom_rune_regeneration") then --Regen
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):SetHealth(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetHealth() + (PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMaxHealth() / 5))
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):SetMana(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMana() + (PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMaxMana() / 5))
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):Purge(true, true, true, false, false)
+  	print('Regen rune picked up!')
+  end
+
+  RemoveRuneFromList(itemEntity, PlayerResource:GetSelectedHeroEntity(keys.PlayerID))
+end
+
+function RemoveRuneFromList(itemEntity, playerEntity)
+	if activeRunes[4] == itemEntity then
+		activeRunes[4] = nil
+		playerEntity:RemoveItem(itemEntity)
+	end
+		if activeRunes[1] == itemEntity then
+		activeRunes[1] = nil
+		playerEntity:RemoveItem(itemEntity)
+	end
+		if activeRunes[2] == itemEntity then
+		activeRunes[2] = nil
+		playerEntity:RemoveItem(itemEntity)
+	end
+		if activeRunes[3] == itemEntity then
+		activeRunes[3] = nil
+		playerEntity:RemoveItem(itemEntity)
+	end
 end
 
 -- A player has reconnected to the game.  This function can be used to repaint Player-based particles or change
@@ -370,40 +412,6 @@ function GameMode:OnRuneActivated (keys)
   local player = PlayerResource:GetPlayer(keys.PlayerID)
   local rune = keys.rune
 
-  if(rune == 0) then --Double damage
-  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveAbility(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):GetAbilityName())
-  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
-  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune"):SetLevel(1)
-    --PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune"), keys.PlayerID)
-  end
-
-  if(rune == 1) then --Haste
-  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveAbility(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):GetAbilityName())
-  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
-  	--local runeSpell = PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune")
-  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):SetLevel(1)
-    --PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0), keys.PlayerID)
-  end
-
-  if(rune == 2) then --Illusions
-
-  end
-
-  if(rune == 3) then --Invisibility
-  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveAbility(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):GetAbilityName())
-  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddAbility("custom_invisibility_rune")
-  	--local runeSpell = PlayerResource:GetSelectedHeroEntity(keys.PlayerID):FindAbilityByName("custom_invisibility_rune")
-  	--PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0):SetLevel(1)
-    --PlayerResource:GetSelectedHeroEntity(keys.PlayerID):CastAbilityOnTarget(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetAbilityByIndex(0), keys.PlayerID)
-  end
-
-  if(rune == 4) then --Regen
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):SetHealth(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetHealth() + (PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMaxHealth() / 5))
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):SetMana(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMana() + (PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMaxMana() / 5))
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):Purge(true, true, true, false, false)
-  	print('Regen rune picked up!')
-  end
-
   --[[ Rune Can be one of the following types
   DOTA_RUNE_DOUBLEDAMAGE
   DOTA_RUNE_HASTE
@@ -437,7 +445,6 @@ function GameMode:OnPlayerPickHero(keys)
   local player = EntIndexToHScript(keys.player)
 
   connectedPlayers[player:GetPlayerID()] = nil
-  table.remove(pickingPlayer, ply)
 end
 
 -- A player killed another player in a multi-team context
@@ -508,12 +515,12 @@ function GameMode:InitGameMode()
   GameRules:SetUseCustomHeroXPValues ( USE_CUSTOM_XP_VALUES )
   GameRules:SetGoldPerTick(GOLD_PER_TICK)
   GameRules:SetGoldTickTime(GOLD_TICK_TIME)
-  GameRules:SetRuneSpawnTime(RUNE_SPAWN_TIME)
+  GameRules:SetRuneSpawnTime(10000000000)
   GameRules:SetUseBaseGoldBountyOnHeroes(USE_STANDARD_HERO_GOLD_BOUNTY)
   GameRules:SetHeroMinimapIconScale( MINIMAP_ICON_SIZE )
   GameRules:SetCreepMinimapIconScale( MINIMAP_CREEP_ICON_SIZE )
   GameRules:SetRuneMinimapIconScale( MINIMAP_RUNE_ICON_SIZE )
-  GameRules:GetGameModeEntity():SetThink( "OnThink", "GameRules", 0.2, self )
+  GameRules:GetGameModeEntity():SetThink( "OnThink", "GameRules", 0, self )
   print('[AROM] GameRules set')
 
   InitLogFile( "log/AROM.txt","")
@@ -708,15 +715,67 @@ end
 
 --Check for repick heroes
 function GameMode:OnThink()
-	PrintTable(connectedPlayers)
-  for _,ply in pairs(connectedPlayers) do
+	--print("THINK TIME")
+  	for _,ply in pairs(connectedPlayers) do
 	    local playerID = ply:GetPlayerID()
-	    if PlayerResource:IsValidPlayerID(playerID) and PlayerResource:HasRepicked(ply:GetPlayerID()) == true and ply:GetAssignedHero() == nil then
+	    if PlayerResource:IsValidPlayerID(playerID) and PlayerResource:HasRepicked(ply:GetPlayerID()) == true and ply:GetAssignedHero() == nil and repickedPlayer[playerID] ~= true then
 	    	ply:MakeRandomHeroSelection()
 	    	selectedHeroes[playerID] = ply:GetAssignedHero()
+	    	repickedPlayer[playerID] = true
 	    end
 	end
-  return 0.2
+
+	currentRuneSpawnTime = currentRuneSpawnTime + 0.2
+	--print(currentRuneSpawnTime)
+
+	if currentRuneSpawnTime >= RUNE_SPAWN_TIME then
+
+		--Remove all old runes
+		if activeRunes[1] ~= nil then
+			activeRunes[1]:GetContainer():RemoveSelf()
+		end
+
+		if activeRunes[2] ~= nil then
+			activeRunes[2]:GetContainer():RemoveSelf()
+		end
+
+		if activeRunes[3] ~= nil then
+			activeRunes[3]:GetContainer():RemoveSelf()
+		end
+
+		if activeRunes[4] ~= nil then
+			activeRunes[4]:GetContainer():RemoveSelf()
+		end
+
+		--Spawn new runes
+		activeRunes = {
+			[1] = GetRandomRune(),
+			[2] = GetRandomRune(),
+			[3] = GetRandomRune(),
+			[4] = GetRandomRune()
+		}
+		CreateItemOnPositionSync(Vector(3200,3584,160), activeRunes[1])
+		CreateItemOnPositionSync(Vector(-2464,-2144,224), activeRunes[2])
+		CreateItemOnPositionSync(Vector(3468,2688,160), activeRunes[3])
+		CreateItemOnPositionSync(Vector(-1216,-896,160), activeRunes[4])
+		print("Spawned rune ")
+
+		currentRuneSpawnTime = 0
+	end
+  	return 0.2
+end
+
+function GetRandomRune()
+	local number =  math.random(1, 4)
+	if number == 1 then
+		return CreateItem("item_custom_rune_doubledamage", nil, nil)
+	elseif number == 2 then
+		return CreateItem("item_custom_rune_haste", nil, nil)
+	elseif number == 3 then
+		return CreateItem("item_custom_rune_invis", nil, nil)
+	elseif number == 4 then
+		return CreateItem("item_custom_rune_regeneration", nil, nil)
+	end
 end
 
 --require('eventtest')

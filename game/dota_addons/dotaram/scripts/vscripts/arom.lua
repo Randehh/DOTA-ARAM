@@ -5,7 +5,7 @@ UNIVERSAL_SHOP_MODE = true             -- Should the main shop contain Secret Sh
 ALLOW_SAME_HERO_SELECTION = true        -- Should we let people select the same hero as each other
 
 HERO_SELECTION_TIME = 0              -- How long should we let people select their hero?
-PRE_GAME_TIME = 45.0                    -- How long after people select their heroes should the horn blow and the game start?
+PRE_GAME_TIME = 100.0                    -- How long after people select their heroes should the horn blow and the game start?
 POST_GAME_TIME = 60.0                   -- How long should we let people look at the scoreboard before closing the server automatically?
 TREE_REGROW_TIME = 60.0                 -- How long should it take individual trees to respawn after being cut down/destroyed?
 
@@ -32,7 +32,7 @@ USE_CUSTOM_TOP_BAR_VALUES = true        -- Should we do customized top bar value
 TOP_BAR_VISIBLE = true                  -- Should we display the top bar score/count at all?
 SHOW_KILLS_ON_TOPBAR = true             -- Should we display kills only on the top bar? (No denies, suicides, kills by neutrals)  Requires USE_CUSTOM_TOP_BAR_VALUES
 
-ENABLE_TOWER_BACKDOOR_PROTECTION = false-- Should we enable backdoor protection for our towers?
+ENABLE_TOWER_BACKDOOR_PROTECTION = true -- Should we enable backdoor protection for our towers?
 REMOVE_ILLUSIONS_ON_DEATH = false       -- Should we remove all illusions if the main hero dies?
 DISABLE_GOLD_SOUNDS = false             -- Should we disable the gold sound when players get gold?
 
@@ -77,6 +77,7 @@ PrintTable(XP_PER_LEVEL_TABLE)
 -- Random selection stuff
 local connectedPlayers = {}
 local selectedHeroes = {}
+local pickingPlayer = {}
 
 -- Generated from template
 if GameMode == nil then
@@ -128,9 +129,10 @@ function GameMode:OnAllPlayersLoaded()
 	for _,ply in pairs(connectedPlayers) do
 	    local playerID = ply:GetPlayerID()
 	    if PlayerResource:IsValidPlayerID(playerID) and ply:GetAssignedHero() == nil then
+	    	table.insert(pickingPlayer, ply)
 	    	ply:MakeRandomHeroSelection()
-	    	PlayerResource:SetHasRepicked(playerID)
 	    	selectedHeroes[playerID] = ply:GetAssignedHero()
+	    	--PlayerResource:SetHasRepicked(playerID)
 	    end
 	end
 end
@@ -433,6 +435,9 @@ function GameMode:OnPlayerPickHero(keys)
   local heroClass = keys.hero
   local heroEntity = EntIndexToHScript(keys.heroindex)
   local player = EntIndexToHScript(keys.player)
+
+  connectedPlayers[player:GetPlayerID()] = nil
+  table.remove(pickingPlayer, ply)
 end
 
 -- A player killed another player in a multi-team context
@@ -508,7 +513,7 @@ function GameMode:InitGameMode()
   GameRules:SetHeroMinimapIconScale( MINIMAP_ICON_SIZE )
   GameRules:SetCreepMinimapIconScale( MINIMAP_CREEP_ICON_SIZE )
   GameRules:SetRuneMinimapIconScale( MINIMAP_RUNE_ICON_SIZE )
-  GameRules:GetGameModeEntity():SetThink( "OnThink", self, "GlobalThink", 0 )
+  GameRules:GetGameModeEntity():SetThink( "OnThink", "GameRules", 0.2, self )
   print('[AROM] GameRules set')
 
   InitLogFile( "log/AROM.txt","")
@@ -701,9 +706,17 @@ function GameMode:ExampleConsoleCommand()
   print( '*********************************************' )
 end
 
---Reconnect players
+--Check for repick heroes
 function GameMode:OnThink()
-  
+	PrintTable(connectedPlayers)
+  for _,ply in pairs(connectedPlayers) do
+	    local playerID = ply:GetPlayerID()
+	    if PlayerResource:IsValidPlayerID(playerID) and PlayerResource:HasRepicked(ply:GetPlayerID()) == true and ply:GetAssignedHero() == nil then
+	    	ply:MakeRandomHeroSelection()
+	    	selectedHeroes[playerID] = ply:GetAssignedHero()
+	    end
+	end
+  return 0.2
 end
 
 --require('eventtest')

@@ -146,26 +146,11 @@ end
 function GameMode:OnHeroInGame(hero)
   print("[AROM] Hero spawned in game for first time -- " .. hero:GetUnitName())
 
-  --[[ Multiteam configuration, currently unfinished
-
-  local team = "team1"
-  local playerID = hero:GetPlayerID()
-  if playerID > 3 then
-    team = "team2"
-  end
-  print("setting " .. playerID .. " to team: " .. team)
-  MultiTeam:SetPlayerTeam(playerID, team)]]
-
-  -- This line for example will set the starting gold of every hero to 500 unreliable gold
   hero:SetGold(1000, false)
   hero:AddExperience(900, false, false)
 
-  --[[ --These lines if uncommented will replace the W ability of any hero that loads into the game
-    --with the "example_ability" ability
-
-  local abil = hero:GetAbilityByIndex(1)
-  hero:RemoveAbility(abil:GetAbilityName())
-  hero:AddAbility("example_ability")]]
+  --Also spawn a popup with instructions
+  ShowGenericPopup( "#popup_title_tutorial", "#popup_body_tutorial", "", "", DOTA_SHOWGENERICPOPUP_TINT_SCREEN )
 end
 
 --[[
@@ -231,13 +216,19 @@ end
 
 -- An NPC has spawned somewhere in game.  This includes heroes
 function GameMode:OnNPCSpawned(keys)
-  print("[AROM] NPC Spawned")
-  PrintTable(keys)
+  --print("[AROM] NPC Spawned")
+  --PrintTable(keys)
   local npc = EntIndexToHScript(keys.entindex)
 
-  if npc:IsRealHero() and npc.bFirstSpawned == nil then
-    npc.bFirstSpawned = true
-    GameMode:OnHeroInGame(npc)
+  if npc:IsRealHero() then
+  	if npc.bFirstSpawned == nil  then
+   	 npc.bFirstSpawned = true
+   		GameMode:OnHeroInGame(npc)
+   		PlayerResource:GetPlayer(npc:GetPlayerID()).inventory = {}
+   		PlayerResource:GetPlayer(npc:GetPlayerID()).inventorySize = 0
+	end
+    print("Shop enabled for " .. npc:GetPlayerID())
+    PlayerResource:GetPlayer(npc:GetPlayerID()).EnabledShop = true
   end
 end
 
@@ -252,7 +243,6 @@ end
 
 -- An item was picked up off the ground
 function GameMode:OnItemPickedUp(keys)
-  print ( '[AROM] OnItemPurchased' )
   PrintTable(keys)
 
   local heroEntity = EntIndexToHScript(keys.HeroEntityIndex)
@@ -260,9 +250,12 @@ function GameMode:OnItemPickedUp(keys)
   local player = PlayerResource:GetPlayer(keys.PlayerID)
   local itemname = keys.itemname
 
+  if string.find(itemname, "item_custom_rune") == false then
+  	return
+  end
+
   if(itemname == "item_custom_rune_doubledamage") then --Double damage
   	itemEntity:ApplyDataDrivenModifier(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID), "modifier_doubledamage", {})
-
   end
 
   if(itemname == "item_custom_rune_haste") then --Haste
@@ -316,19 +309,87 @@ end
 
 -- An item was purchased by a player
 function GameMode:OnItemPurchased( keys )
-  print ( '[AROM] OnItemPurchased' )
-  PrintTable(keys)
+	print ( '[AROM] OnItemPurchased' )
+	PrintTable(keys)
 
   -- The playerID of the hero who is buying something
   local plyID = keys.PlayerID
   if not plyID then return end
 
-  -- The name of the item purchased
+  local cancelTransaction = false
   local itemName = keys.itemname 
-  
-  -- The cost of the item purchased
   local itemcost = keys.itemcost
   
+  local player = PlayerResource:GetPlayer(keys.PlayerID)
+
+  if player.EnabledShop == false then
+  	cancelTransaction = true
+  	FireGameEvent("show_center_message", { message = "You can't shop anymore.", duration = 1 })    
+  end
+
+  --Cancel the event anyway if the player has no more inventory space
+  if GetItemAmountInInventory(plyID) >= 7 and cancelTransaction ~= true then
+  	cancelTransaction = true
+  	FireGameEvent("show_center_message", { message = "No more inventory space.", duration = 1 })    
+  end
+
+  --Cancel transaction
+  if cancelTransaction == true then
+  	for i=12,0,-1 do 
+  		if  PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i) ~= nil then
+  			if PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i):GetName() == itemName then
+  				local newGold = (PlayerResource:GetGold(plyID) + itemcost)
+  				PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveItem(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i))
+  				PlayerResource:SetGold(plyID, newGold, false)
+  				return
+  			end
+  		end
+  	end
+  end
+
+  --Also check for item combines
+  if player.inventorySize >= GetItemAmountInInventory(plyID) then
+  	RevertInventory(plyID)
+  	local newGold = (PlayerResource:GetGold(plyID) + itemcost)
+  	PlayerResource:SetGold(plyID, newGold, false)
+  	FireGameEvent("show_center_message", { message = "You can't shop anymore.", duration = 1 })    
+  else
+  	SaveInventory(plyID)
+  end
+end
+
+function GetItemAmountInInventory(playerID)
+	local amount = 0
+	for i=0,6,1 do 
+	    if  PlayerResource:GetSelectedHeroEntity(playerID):GetItemInSlot(i) ~= nil then
+	    	amount = amount + 1
+	    end
+	end
+	return amount
+end
+
+function SaveInventory(playerID)
+	local inventory = {}
+	for i=0,6,1 do 
+	    if  PlayerResource:GetSelectedHeroEntity(playerID):GetItemInSlot(i) ~= nil then
+	    	inventory[i] = PlayerResource:GetSelectedHeroEntity(playerID):GetItemInSlot(i):GetClassname()
+	    end
+	end
+	PlayerResource:GetPlayer(playerID).inventory = inventory
+	PlayerResource:GetPlayer(playerID).inventorySize = table.getn(inventory)
+end
+
+function RevertInventory(playerID)
+	local inventory = PlayerResource:GetPlayer(playerID).inventory
+	for i=0,6,1 do
+		if  PlayerResource:GetSelectedHeroEntity(playerID):GetItemInSlot(i) ~= nil then
+			PlayerResource:GetSelectedHeroEntity(playerID):RemoveItem(PlayerResource:GetSelectedHeroEntity(playerID):GetItemInSlot(i))
+		end
+
+	    if  inventory[i] ~= nil then
+	    	PlayerResource:GetSelectedHeroEntity(playerID):AddItem(CreateItem(inventory[i], PlayerResource:GetSelectedHeroEntity(playerID), PlayerResource:GetSelectedHeroEntity(playerID)))
+	    end
+	end
 end
 
 -- An ability was used by a player
@@ -461,7 +522,7 @@ end
 -- An entity died
 function GameMode:OnEntityKilled( keys )
   print( '[AROM] OnEntityKilled Called' )
-  PrintTable( keys )
+  --PrintTable( keys )
   
   -- The Unit that was Killed
   local killedUnit = EntIndexToHScript( keys.entindex_killed )
@@ -776,6 +837,20 @@ function GetRandomRune()
 	elseif number == 4 then
 		return CreateItem("item_custom_rune_regeneration", nil, nil)
 	end
+end
+
+--Leave and enter shop
+function PlayerEnterShop(keys)
+end
+
+function PlayerLeaveShop(keys)
+	local playerID = keys.activator:GetPlayerOwnerID()
+
+	if PlayerResource:GetPlayer(playerID).EnabledShop ~= false then
+		FireGameEvent("show_center_message", { message = "You have left the shop.", duration = 3 }) 
+	end   
+
+	PlayerResource:GetPlayer(playerID).EnabledShop = false
 end
 
 --require('eventtest')

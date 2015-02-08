@@ -4,7 +4,7 @@ require('util')
 require('timers')
 require('physics')
 require('arom')
-require('eventtest')
+--require('eventtest')
 
 function Precache( context )
 	--[[
@@ -46,5 +46,5 @@ end
 function Activate()
 	GameRules.GameMode = GameMode()
 	GameRules.GameMode:InitGameMode()
-	GameRules.GameMode:StartEventTest()
+	--GameRules.GameMode:StartEventTest()
 end

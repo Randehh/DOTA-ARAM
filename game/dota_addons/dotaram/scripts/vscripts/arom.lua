@@ -273,7 +273,7 @@ function GameMode:OnItemPickedUp(keys)
 
   if(itemname == "item_custom_rune_invis") then --Invisibility
 	itemEntity:ApplyDataDrivenModifier(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID), "modifier_invis", {})
-	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddNewModifier(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID), "modifier_invisible", {duration = 15}) 
+	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):AddNewModifier(PlayerResource:GetSelectedHeroEntity(keys.PlayerID), PlayerResource:GetSelectedHeroEntity(keys.PlayerID), "modifier_invisible", {duration = 30}) 
   end
 
   if(itemname == "item_custom_rune_regeneration") then --Regen
@@ -513,7 +513,7 @@ function GameMode:OnPlayerPickHero(keys)
   local heroEntity = EntIndexToHScript(keys.heroindex)
   local player = EntIndexToHScript(keys.player)
 
-  globals.connectedPlayers[player:GetPlayerID()] = nil
+  --globals.connectedPlayers[player:GetPlayerID()] = nil
 end
 
 -- A player killed another player in a multi-team context
@@ -572,7 +572,7 @@ function GameMode:InitGameMode()
   GameRules:SetGoldPerTick(GOLD_PER_TICK)
   GameRules:SetGoldTickTime(GOLD_TICK_TIME)
   GameRules:SetRuneSpawnTime(10000000000)
-  GameRules:SetUseBaseGoldBountyOnHeroes(true)
+  GameRules:SetUseBaseGoldBountyOnHeroes(false)
   GameRules:SetHeroMinimapIconScale( MINIMAP_ICON_SIZE )
   GameRules:SetCreepMinimapIconScale( MINIMAP_CREEP_ICON_SIZE )
   GameRules:SetRuneMinimapIconScale( MINIMAP_RUNE_ICON_SIZE )
@@ -771,8 +771,10 @@ end
 
 --Check for repick heroes
 function GameMode:OnThink()
-  	for _,ply in pairs(globals.connectedPlayers) do
-	    local playerID = ply:GetPlayerID()
+
+  --print("Thinking...")
+  for _,ply in pairs(globals.connectedPlayers) do
+	  local playerID = ply:GetPlayerID()
 	    if PlayerResource:IsValidPlayerID(playerID) and PlayerResource:HasRepicked(ply:GetPlayerID()) == true and ply:GetAssignedHero() == nil and globals.repickedPlayer[playerID] ~= true then
 	    	ply:MakeRandomHeroSelection()
 	    	globals.selectedHeroes[playerID] = ply:GetAssignedHero()
@@ -785,7 +787,6 @@ function GameMode:OnThink()
 	else
 
 		globals.currentRuneSpawnTime = globals.currentRuneSpawnTime + 0.2
-		globals.goldTimer = globals.goldTimer + 0.2
 		--print(globals.currentRuneSpawnTime)
 
 		if globals.currentRuneSpawnTime >= 30 then
@@ -823,14 +824,16 @@ function GameMode:OnThink()
 			globals.currentRuneSpawnTime = 0
 		end
 
-		if globals.goldTimer >= 1 then
-			for _,ply in pairs(globals.connectedPlayers) do
-	    		local playerID = ply:GetPlayerID()
-	    		PlayerResource:SetGold(playerID, PlayerResource:GetReliableGold(playerID) + 3, true)
-			end
+    globals.goldTimer = globals.goldTimer + 0.2
+    --print(globals.goldTimer)
+    if globals.goldTimer >= 1 then
+      for _,ply in pairs(globals.connectedPlayers) do
+          local playerID = ply:GetPlayerID()
+          PlayerResource:SetGold(playerID, PlayerResource:GetReliableGold(playerID) + 3, true)
+      end
 
-			globals.goldTimer = 0
-		end
+      globals.goldTimer = 0
+    end
 	end
   	return 0.2
 end
@@ -860,6 +863,38 @@ function PlayerLeaveShop(keys)
 	end   
 
 	PlayerResource:GetPlayer(playerID).EnabledShop = false
+end
+
+--Smoke of Deceit
+function teamBasedCircle(keys)
+  local target = keys.Target
+  local caster = keys.caster
+  local duration = tonumber(keys.Duration) or 6
+  local sound = keys.Sound or nil
+  local radius = tonumber(keys.Radius)
+
+  --print("Team number of unit is " .. caster:GetTeamNumber())
+
+  local team = nil
+  if caster:GetTeamNumber() == 2 then
+    team = DOTA_TEAM_GOODGUYS
+  else
+    team = DOTA_TEAM_BADGUYS
+  end
+
+  local units = FindUnitsInRadius(caster:GetTeamNumber(),
+                              caster:EyePosition(),
+                              nil,
+                              FIND_UNITS_EVERYWHERE,
+                              DOTA_UNIT_TARGET_TEAM_FRIENDLY,
+                              DOTA_UNIT_TARGET_ALL,
+                              DOTA_UNIT_TARGET_FLAG_NONE,
+                              FIND_ANY_ORDER,
+                              false)
+
+  for _,unit in pairs(units) do
+    unit:AddNewModifier(unit, unit, "modifier_invisible", {duration = duration}) 
+  end
 end
 
 --require('eventtest')

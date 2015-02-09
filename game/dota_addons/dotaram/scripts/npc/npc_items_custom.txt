@@ -34,7 +34,7 @@
 				"EffectAttachType"	"follow_origin"
 				"Target"		"CASTER"
 				
-				"Duration" "10"
+				"Duration" "30"
 				"TextureName" "rune_haste"
 				"Properties"
 				{
@@ -79,7 +79,7 @@
 				"EffectAttachType"	"follow_origin"
 				"Target"		"CASTER"
 				
-				"Duration" "15"
+				"Duration" "30"
 				"TextureName" "rune_doubledamage"
 				"Properties"
 				{
@@ -124,7 +124,7 @@
 				"EffectAttachType"	"follow_origin"
 				"Target"		"CASTER"
 				
-				"Duration" "15"
+				"Duration" "30"
 				"TextureName" "rune_invis"
 				"Properties"
 				{
@@ -196,6 +196,7 @@
 		"Model"						"models/props_gameplay/smoke.mdl"
 		"Effect"					"dropped_smoke"		
 		"FightRecapLevel"				"1"
+		"AbilityTextureName"				"smoke"
 																																																																												 
 		// Stats		
 		//-------------------------------------------------------------------------------------------------------------
@@ -220,31 +221,40 @@
 
 		"OnSpellStart"
 		{
-			"smoke_start"
-        		{
-            			"Duration"              "15"
-            			"Target"
+			"ApplyModifier"
+			{
+				"Target"
 				{
 					"Center"			"CASTER"
-					"Radius"			"100"
+					"Radius"			"1000"
 					"Teams"				"DOTA_UNIT_TARGET_TEAM_FRIENDLY"
 					"Types"				"DOTA_UNIT_TARGET_HERO"
 					"MaxTargets"			"5"
 
 				}
-				
-            			"Modifiers"
-            			{
-               				"MODIFIER_STATE_INVISIBLE"	"MODIFIER_STATE_VALUE_ENABLED"
-            			}
-        		}
-
-			"cool_effect"
-			{
-				"EffectName"		"particles/generic_gameplay/rune_doubledamage_owner.vpcf"
-				"EffectAttachType"	"follow_origin"
-				"Target"		"CASTER"
+				"ModifierName"	"modifiers_invisible"
 			}
+
+			"RunScript"
+      			{
+       				"ScriptFile"    "scripts/vscripts/arom.lua"
+        			"Function"      "teamBasedCircle"
+        			//"SafeEffect"    "particles/reflex_particles/ref_enigma_midnight_pulse.vpcf"
+        			//"DangerEffect"  "particles/units/heroes/hero_enigma/enigma_midnight_pulse.vpcf"
+        			"Duration"      "30"
+        			"Radius"        "100"
+        			"Target"        "CASTER"
+        			//"Sound"         "Reflex.Midnight_Pulse"
+      			}
 		}
+	
+		"Modifiers"
+            	{
+			"modifiers_invisible"
+			{
+				"Duration"             		"30"
+               			"MODIFIER_STATE_INVISIBLE"	"MODIFIER_STATE_VALUE_ENABLED"
+			}
+            	}
 	}
 }

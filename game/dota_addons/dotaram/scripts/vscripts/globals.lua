@@ -5,6 +5,7 @@ local class = {
 	currentRuneSpawnTime = 60,
 	activeRunes = {},
 	spawnRunes = false,
-	goldTimer = 0
+	goldTimer = 0,
+	timer = {}
 }
 return class

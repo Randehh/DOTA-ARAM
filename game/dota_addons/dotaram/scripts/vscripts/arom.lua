@@ -1,6 +1,11 @@
 print ('[AROM] AROM.lua' )
 local globals = require("globals")
 
+require('lib.statcollection')
+statcollection.addStats({
+	modID = 'afbfdcaac5981e668fa63e33e127ac3f' --GET THIS FROM http://getdotastats.com/#d2mods__my_mods
+})
+
 ENABLE_HERO_RESPAWN = true              -- Should the heroes automatically respawn on a timer or stay dead until manually respawned
 UNIVERSAL_SHOP_MODE = true             -- Should the main shop contain Secret Shop items as well as regular items
 ALLOW_SAME_HERO_SELECTION = true        -- Should we let people select the same hero as each other

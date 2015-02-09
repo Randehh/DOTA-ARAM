@@ -229,6 +229,9 @@ function GameMode:OnNPCSpawned(keys)
 	end
     --print("Shop enabled for " .. npc:GetPlayerID())
     PlayerResource:GetPlayer(npc:GetPlayerID()).EnabledShop = true
+
+    npc:SetMinimumGoldBounty(200)
+    npc:SetMaximumGoldBounty(200)
   end
 end
 
@@ -327,13 +330,13 @@ function GameMode:OnItemPurchased( keys )
 
   if player.EnabledShop == false then
   	cancelTransaction = true
-  	Say(player, "You can't shop anymore.", false) 
+  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "You can't shop anymore." } ) 
   end
 
   --Cancel the event anyway if the player has no more inventory space
   if GetItemAmountInInventory(plyID) >= 7 and cancelTransaction ~= true then
   	cancelTransaction = true
-  	Say(player, "No more inventory space.", false) 
+  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "No more inventory space." } ) 
   end
 
   --Cancel transaction
@@ -355,7 +358,7 @@ function GameMode:OnItemPurchased( keys )
   	RevertInventory(plyID)
   	local newGold = (PlayerResource:GetGold(plyID) + itemcost)
   	PlayerResource:SetGold(plyID, newGold, false)
-  	Say(player, "You can't shop anymore.", false) 
+  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "You can't shop anymore." } ) 
   else
   	SaveInventory(plyID)
   end
@@ -835,14 +838,14 @@ function GameMode:OnThink()
 end
 
 function GetRandomRune()
-	local number =  math.random(1, 4)
-	if number == 1 then
+	local number =  math.random(1, 100)
+	if number <= 15 then
 		return CreateItem("item_custom_rune_doubledamage", nil, nil)
-	elseif number == 2 then
+	elseif number <= 40 then
 		return CreateItem("item_custom_rune_haste", nil, nil)
-	elseif number == 3 then
+	elseif number <= 60 then
 		return CreateItem("item_custom_rune_invis", nil, nil)
-	elseif number == 4 then
+	elseif number <= 100 then
 		return CreateItem("item_custom_rune_regeneration", nil, nil)
 	end
 end
@@ -855,7 +858,7 @@ function PlayerLeaveShop(keys)
 	local playerID = keys.activator:GetPlayerOwnerID()
 
 	if PlayerResource:GetPlayer(playerID).EnabledShop ~= false then
-		Say(PlayerResource:GetPlayer(playerID), "You have left the shop.", false) 
+		FireGameEvent("custom_error_show", { player_ID = playerID, _error = "You have left the shop." } ) 
 	end   
 
 	PlayerResource:GetPlayer(playerID).EnabledShop = false

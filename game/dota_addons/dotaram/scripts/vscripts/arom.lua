@@ -15,8 +15,8 @@ PRE_GAME_TIME = 60.0                    -- How long after people select their he
 POST_GAME_TIME = 60.0                   -- How long should we let people look at the scoreboard before closing the server automatically?
 TREE_REGROW_TIME = 60.0                 -- How long should it take individual trees to respawn after being cut down/destroyed?
 
-GOLD_PER_TICK = 3                       -- How much gold should players get per tick?
-GOLD_TICK_TIME = 2                      -- How long should we wait in seconds between gold ticks?
+GOLD_PER_TICK = 0                       -- How much gold should players get per tick?
+GOLD_TICK_TIME = 60                      -- How long should we wait in seconds between gold ticks?
 
 RECOMMENDED_BUILDS_DISABLED = false     -- Should we disable the recommened builds for heroes (Note: this is not working currently I believe)
 CAMERA_DISTANCE_OVERRIDE = 1134.0        -- How far out should we allow the camera to go?  1134 is the default in Dota
@@ -148,7 +148,9 @@ end
 function GameMode:OnHeroInGame(hero)
   print("[AROM] Hero spawned in game for first time -- " .. hero:GetUnitName())
 
-  hero:SetGold(1000, false)
+  hero:SetGold(1000, true)
+  hero:SetGold(0, false)
+
   hero:AddExperience(900, false, false)
 end
 
@@ -229,9 +231,9 @@ function GameMode:OnNPCSpawned(keys)
 	end
     --print("Shop enabled for " .. npc:GetPlayerID())
     PlayerResource:GetPlayer(npc:GetPlayerID()).EnabledShop = true
-
-    npc:SetMinimumGoldBounty(200)
-    npc:SetMaximumGoldBounty(200)
+    print("HERO SPAWNED")
+    --npc:SetMinimumGoldBounty(200)
+    --npc:SetMaximumGoldBounty(1000)
   end
 end
 
@@ -342,19 +344,19 @@ function GameMode:OnItemPurchased( keys )
   	--Cancel transaction
   	if cancelTransaction == true then
 
-  	  	  --Check for item combines first...
-  	  	  if player.inventorySize >= GetItemAmountInInventory(plyID) then
+  	  	--Check for item combines first...
+  	  	if player.inventorySize >= GetItemAmountInInventory(plyID) then
   	  	  	RevertInventory(plyID)
-  	  	  	local newGold = (PlayerResource:GetGold(plyID) + itemcost)
-  	  	  	PlayerResource:SetGold(plyID, newGold, false)
+  	  	  	local newGold = (PlayerResource:GetReliableGold(plyID) + itemcost)
+  	  	  	PlayerResource:SetGold(plyID, newGold, true)
   	  	  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "You can't shop anymore." } ) 
-  	  	  else
+  	  	else
   	  	  	for i=12,0,-1 do 
   	  	  		if  PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i) ~= nil then
   	  	  			if PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i):GetName() == itemName then
-  	  	  				local newGold = (PlayerResource:GetGold(plyID) + itemcost)
+  	  	  				local newGold = (PlayerResource:GetReliableGold(plyID) + itemcost)
   	  	  				PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveItem(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i))
-  	  	  				PlayerResource:SetGold(plyID, newGold, false)
+  	  	  				PlayerResource:SetGold(plyID, newGold, true)
   	  	  				return
   	  	  			end
   	  	  		end
@@ -541,20 +543,7 @@ function GameMode:OnEntityKilled( keys )
 
   if killedUnit:IsRealHero() then 
     print ("KILLEDKILLER: " .. killedUnit:GetName() .. " -- " .. killerEntity:GetName())
-    if killedUnit:GetTeam() == DOTA_TEAM_BADGUYS and killerEntity:GetTeam() == DOTA_TEAM_GOODGUYS then
-      self.nRadiantKills = self.nRadiantKills + 1
-      if END_GAME_ON_KILLS and self.nRadiantKills >= KILLS_TO_END_GAME_FOR_TEAM then
-        GameRules:SetSafeToLeave( true )
-        GameRules:SetGameWinner( DOTA_TEAM_GOODGUYS )
-      end
-    elseif killedUnit:GetTeam() == DOTA_TEAM_GOODGUYS and killerEntity:GetTeam() == DOTA_TEAM_BADGUYS then
-      self.nDireKills = self.nDireKills + 1
-      if END_GAME_ON_KILLS and self.nDireKills >= KILLS_TO_END_GAME_FOR_TEAM then
-        GameRules:SetSafeToLeave( true )
-        GameRules:SetGameWinner( DOTA_TEAM_BADGUYS )
-      end
-    end
-
+    print("Unit bounty: " .. killedUnit:GetGoldBounty())
     if SHOW_KILLS_ON_TOPBAR then
       GameRules:GetGameModeEntity():SetTopBarTeamValue ( DOTA_TEAM_BADGUYS, self.nDireKills )
       GameRules:GetGameModeEntity():SetTopBarTeamValue ( DOTA_TEAM_GOODGUYS, self.nRadiantKills )
@@ -583,7 +572,7 @@ function GameMode:InitGameMode()
   GameRules:SetGoldPerTick(GOLD_PER_TICK)
   GameRules:SetGoldTickTime(GOLD_TICK_TIME)
   GameRules:SetRuneSpawnTime(10000000000)
-  GameRules:SetUseBaseGoldBountyOnHeroes(USE_STANDARD_HERO_GOLD_BOUNTY)
+  GameRules:SetUseBaseGoldBountyOnHeroes(true)
   GameRules:SetHeroMinimapIconScale( MINIMAP_ICON_SIZE )
   GameRules:SetCreepMinimapIconScale( MINIMAP_CREEP_ICON_SIZE )
   GameRules:SetRuneMinimapIconScale( MINIMAP_RUNE_ICON_SIZE )
@@ -630,7 +619,7 @@ function GameMode:InitGameMode()
 
 
   -- Commands can be registered for debugging purposes or as functions that can be called by the custom Scaleform UI
-  Convars:RegisterCommand( "command_example", Dynamic_Wrap(GameMode, 'ExampleConsoleCommand'), "A console command example", 0 )
+  --Convars:RegisterCommand( "command_example", Dynamic_Wrap(GameMode, 'ExampleConsoleCommand'), "A console command example", 0 )
   
   -- Fill server with fake clients
   -- Fake clients don't use the default bot AI for buying items or moving down lanes and are sometimes necessary for debugging
@@ -796,6 +785,7 @@ function GameMode:OnThink()
 	else
 
 		globals.currentRuneSpawnTime = globals.currentRuneSpawnTime + 0.2
+		globals.goldTimer = globals.goldTimer + 0.2
 		--print(globals.currentRuneSpawnTime)
 
 		if globals.currentRuneSpawnTime >= 30 then
@@ -831,6 +821,15 @@ function GameMode:OnThink()
 			--print("Spawned rune ")
 
 			globals.currentRuneSpawnTime = 0
+		end
+
+		if globals.goldTimer >= 1 then
+			for _,ply in pairs(globals.connectedPlayers) do
+	    		local playerID = ply:GetPlayerID()
+	    		PlayerResource:SetGold(playerID, PlayerResource:GetReliableGold(playerID) + 1, true)
+			end
+
+			globals.goldTimer = 0
 		end
 	end
   	return 0.2

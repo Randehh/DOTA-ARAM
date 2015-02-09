@@ -318,50 +318,50 @@ function GameMode:OnItemPurchased( keys )
 	print ( '[AROM] OnItemPurchased' )
 	PrintTable(keys)
 
-  -- The playerID of the hero who is buying something
-  local plyID = keys.PlayerID
-  if not plyID then return end
+	-- The playerID of the hero who is buying something
+	local plyID = keys.PlayerID
+	if not plyID then return end
 
-  local cancelTransaction = false
-  local itemName = keys.itemname 
-  local itemcost = keys.itemcost
-  
-  local player = PlayerResource:GetPlayer(keys.PlayerID)
+	local cancelTransaction = false
+	local itemName = keys.itemname 
+	local itemcost = keys.itemcost
+	  
+	local player = PlayerResource:GetPlayer(keys.PlayerID)
 
-  if player.EnabledShop == false then
-  	cancelTransaction = true
-  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "You can't shop anymore." } ) 
-  end
+	if player.EnabledShop == false then
+	  	cancelTransaction = true
+	  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "You can't shop anymore." } ) 
+	end
 
-  --Cancel the event anyway if the player has no more inventory space
-  if GetItemAmountInInventory(plyID) >= 7 and cancelTransaction ~= true then
-  	cancelTransaction = true
-  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "No more inventory space." } ) 
-  end
+	--Cancel the event anyway if the player has no more inventory space
+	if GetItemAmountInInventory(plyID) >= 7 and cancelTransaction ~= true then
+	  	cancelTransaction = true
+	  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "No more inventory space." } ) 
+	end
 
-  --Cancel transaction
-  if cancelTransaction == true then
-  	for i=12,0,-1 do 
-  		if  PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i) ~= nil then
-  			if PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i):GetName() == itemName then
-  				local newGold = (PlayerResource:GetGold(plyID) + itemcost)
-  				PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveItem(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i))
-  				PlayerResource:SetGold(plyID, newGold, false)
-  				return
-  			end
-  		end
+  	--Cancel transaction
+  	if cancelTransaction == true then
+
+  	  	  --Check for item combines first...
+  	  	  if player.inventorySize >= GetItemAmountInInventory(plyID) then
+  	  	  	RevertInventory(plyID)
+  	  	  	local newGold = (PlayerResource:GetGold(plyID) + itemcost)
+  	  	  	PlayerResource:SetGold(plyID, newGold, false)
+  	  	  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "You can't shop anymore." } ) 
+  	  	  else
+  	  	  	for i=12,0,-1 do 
+  	  	  		if  PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i) ~= nil then
+  	  	  			if PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i):GetName() == itemName then
+  	  	  				local newGold = (PlayerResource:GetGold(plyID) + itemcost)
+  	  	  				PlayerResource:GetSelectedHeroEntity(keys.PlayerID):RemoveItem(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetItemInSlot(i))
+  	  	  				PlayerResource:SetGold(plyID, newGold, false)
+  	  	  				return
+  	  	  			end
+  	  	  		end
+  	  	  	end
+  	  	end
   	end
-  end
-
-  --Also check for item combines
-  if player.inventorySize >= GetItemAmountInInventory(plyID) then
-  	RevertInventory(plyID)
-  	local newGold = (PlayerResource:GetGold(plyID) + itemcost)
-  	PlayerResource:SetGold(plyID, newGold, false)
-  	FireGameEvent("custom_error_show", { player_ID = plyID, _error = "You can't shop anymore." } ) 
-  else
   	SaveInventory(plyID)
-  end
 end
 
 function GetItemAmountInInventory(playerID)
@@ -782,7 +782,6 @@ end
 
 --Check for repick heroes
 function GameMode:OnThink()
-	print("THINK TIME")
   	for _,ply in pairs(globals.connectedPlayers) do
 	    local playerID = ply:GetPlayerID()
 	    if PlayerResource:IsValidPlayerID(playerID) and PlayerResource:HasRepicked(ply:GetPlayerID()) == true and ply:GetAssignedHero() == nil and globals.repickedPlayer[playerID] ~= true then
@@ -793,11 +792,11 @@ function GameMode:OnThink()
 	end
 
 	if globals.spawnRunes == false then
-		print("Spawn runes is false")
+		--print("Spawn runes is false")
 	else
 
 		globals.currentRuneSpawnTime = globals.currentRuneSpawnTime + 0.2
-		print(globals.currentRuneSpawnTime)
+		--print(globals.currentRuneSpawnTime)
 
 		if globals.currentRuneSpawnTime >= 30 then
 
@@ -829,7 +828,7 @@ function GameMode:OnThink()
 			CreateItemOnPositionSync(Vector(2368,2688,160), globals.activeRunes[2]) -- Dire inner
 			CreateItemOnPositionSync(Vector(-2464,-2144,160), globals.activeRunes[3]) -- Radiant outer
 			CreateItemOnPositionSync(Vector(-1216,-896,160), globals.activeRunes[4]) -- Radiant inner
-			print("Spawned rune ")
+			--print("Spawned rune ")
 
 			globals.currentRuneSpawnTime = 0
 		end

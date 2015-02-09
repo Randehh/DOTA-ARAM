@@ -277,8 +277,8 @@ function GameMode:OnItemPickedUp(keys)
   end
 
   if(itemname == "item_custom_rune_regeneration") then --Regen
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):SetHealth(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetHealth() + (PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMaxHealth() / 5))
-  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):SetMana(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMana() + (PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMaxMana() / 5))
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):SetHealth(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetHealth() + (PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMaxHealth() / 3))
+  	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):SetMana(PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMana() + (PlayerResource:GetSelectedHeroEntity(keys.PlayerID):GetMaxMana() / 2))
   	PlayerResource:GetSelectedHeroEntity(keys.PlayerID):Purge(true, true, true, false, false)
   	print('Regen rune picked up!')
   end
@@ -815,9 +815,9 @@ function GameMode:OnThink()
 				[4] = GetRandomRune()
 			}
 			CreateItemOnPositionSync(Vector(3200,3584,160), globals.activeRunes[1]) -- Dire outer
-			CreateItemOnPositionSync(Vector(2368,2688,160), globals.activeRunes[2]) -- Dire inner
+			CreateItemOnPositionSync(Vector(1472,1664,160), globals.activeRunes[2]) -- Dire inner
 			CreateItemOnPositionSync(Vector(-2464,-2144,160), globals.activeRunes[3]) -- Radiant outer
-			CreateItemOnPositionSync(Vector(-1216,-896,160), globals.activeRunes[4]) -- Radiant inner
+			CreateItemOnPositionSync(Vector(-480,-288,160), globals.activeRunes[4]) -- Radiant inner
 			--print("Spawned rune ")
 
 			globals.currentRuneSpawnTime = 0
@@ -826,7 +826,7 @@ function GameMode:OnThink()
 		if globals.goldTimer >= 1 then
 			for _,ply in pairs(globals.connectedPlayers) do
 	    		local playerID = ply:GetPlayerID()
-	    		PlayerResource:SetGold(playerID, PlayerResource:GetReliableGold(playerID) + 1, true)
+	    		PlayerResource:SetGold(playerID, PlayerResource:GetReliableGold(playerID) + 3, true)
 			end
 
 			globals.goldTimer = 0

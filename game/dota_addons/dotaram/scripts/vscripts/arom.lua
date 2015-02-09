@@ -817,10 +817,10 @@ function GameMode:OnThink()
 				[3] = GetRandomRune(),
 				[4] = GetRandomRune()
 			}
-			CreateItemOnPositionSync(Vector(3200,3584,160), globals.activeRunes[1])
-			CreateItemOnPositionSync(Vector(-2464,-2144,224), globals.activeRunes[2])
-			CreateItemOnPositionSync(Vector(3468,2688,160), globals.activeRunes[3])
-			CreateItemOnPositionSync(Vector(-1216,-896,160), globals.activeRunes[4])
+			CreateItemOnPositionSync(Vector(3200,3584,160), globals.activeRunes[1]) -- Dire outer
+			CreateItemOnPositionSync(Vector(2368,2688,160), globals.activeRunes[2]) -- Dire inner
+			CreateItemOnPositionSync(Vector(-2464,-2144,160), globals.activeRunes[3]) -- Radiant outer
+			CreateItemOnPositionSync(Vector(-1216,-896,160), globals.activeRunes[4]) -- Radiant inner
 			print("Spawned rune ")
 
 			globals.currentRuneSpawnTime = 0

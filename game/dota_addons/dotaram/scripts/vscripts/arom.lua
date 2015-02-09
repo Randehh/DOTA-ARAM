@@ -1,11 +1,12 @@
 print ('[AROM] AROM.lua' )
+local globals = require("globals")
 
 ENABLE_HERO_RESPAWN = true              -- Should the heroes automatically respawn on a timer or stay dead until manually respawned
 UNIVERSAL_SHOP_MODE = true             -- Should the main shop contain Secret Shop items as well as regular items
 ALLOW_SAME_HERO_SELECTION = true        -- Should we let people select the same hero as each other
 
 HERO_SELECTION_TIME = 0              -- How long should we let people select their hero?
-PRE_GAME_TIME = 100.0                    -- How long after people select their heroes should the horn blow and the game start?
+PRE_GAME_TIME = 60.0                    -- How long after people select their heroes should the horn blow and the game start?
 POST_GAME_TIME = 60.0                   -- How long should we let people look at the scoreboard before closing the server automatically?
 TREE_REGROW_TIME = 60.0                 -- How long should it take individual trees to respawn after being cut down/destroyed?
 
@@ -28,9 +29,9 @@ DISABLE_FOG_OF_WAR_ENTIRELY = false      -- Should we disable fog of war entirel
 --USE_STANDARD_DOTA_BOT_THINKING = false  -- Should we have bots act like they would in Dota? (This requires 3 lanes, normal items, etc)
 USE_STANDARD_HERO_GOLD_BOUNTY = true    -- Should we give gold for hero kills the same as in Dota, or allow those values to be changed?
 
-USE_CUSTOM_TOP_BAR_VALUES = true        -- Should we do customized top bar values or use the default kill count per team?
+USE_CUSTOM_TOP_BAR_VALUES = false        -- Should we do customized top bar values or use the default kill count per team?
 TOP_BAR_VISIBLE = true                  -- Should we display the top bar score/count at all?
-SHOW_KILLS_ON_TOPBAR = true             -- Should we display kills only on the top bar? (No denies, suicides, kills by neutrals)  Requires USE_CUSTOM_TOP_BAR_VALUES
+SHOW_KILLS_ON_TOPBAR = false             -- Should we display kills only on the top bar? (No denies, suicides, kills by neutrals)  Requires USE_CUSTOM_TOP_BAR_VALUES
 
 ENABLE_TOWER_BACKDOOR_PROTECTION = true -- Should we enable backdoor protection for our towers?
 REMOVE_ILLUSIONS_ON_DEATH = false       -- Should we remove all illusions if the main hero dies?
@@ -71,13 +72,6 @@ XP_PER_LEVEL_TABLE = {
 	[24] = 100,
 	[25] = 100
 }
-
--- Random selection stuff
-local connectedPlayers = {}
-local selectedHeroes = {}
-local repickedPlayer = {}
-local currentRuneSpawnTime = 0
-local activeRunes = {}
 
 -- Generated from template
 if GameMode == nil then
@@ -126,14 +120,17 @@ end
 function GameMode:OnAllPlayersLoaded()
   print("[AROM] All Players have loaded into the game")
 
-	for _,ply in pairs(connectedPlayers) do
+	for _,ply in pairs(globals.connectedPlayers) do
 	    local playerID = ply:GetPlayerID()
 	    if PlayerResource:IsValidPlayerID(playerID) and ply:GetAssignedHero() == nil then
 	    	ply:MakeRandomHeroSelection()
-	    	selectedHeroes[playerID] = ply:GetAssignedHero()
+	    	globals.selectedHeroes[playerID] = ply:GetAssignedHero()
 	    	--PlayerResource:SetHasRepicked(playerID)
 	    end
 	end
+
+	--Also spawn a popup with instructions
+  	ShowGenericPopup( "#popup_title_tutorial", "#popup_body_tutorial", "", "", DOTA_SHOWGENERICPOPUP_TINT_SCREEN )
 end
 
 --[[
@@ -148,9 +145,6 @@ function GameMode:OnHeroInGame(hero)
 
   hero:SetGold(1000, false)
   hero:AddExperience(900, false, false)
-
-  --Also spawn a popup with instructions
-  ShowGenericPopup( "#popup_title_tutorial", "#popup_body_tutorial", "", "", DOTA_SHOWGENERICPOPUP_TINT_SCREEN )
 end
 
 --[[
@@ -160,6 +154,7 @@ end
 ]]
 function GameMode:OnGameInProgress()
   print("[AROM] The game has officially begun")
+  globals.spawnRunes = true
 
   --[[Timers:CreateTimer(0.25, -- Start this timer 30 game-time seconds later
   function()
@@ -222,12 +217,12 @@ function GameMode:OnNPCSpawned(keys)
 
   if npc:IsRealHero() then
   	if npc.bFirstSpawned == nil  then
-   	 npc.bFirstSpawned = true
+   	 	npc.bFirstSpawned = true
    		GameMode:OnHeroInGame(npc)
    		PlayerResource:GetPlayer(npc:GetPlayerID()).inventory = {}
    		PlayerResource:GetPlayer(npc:GetPlayerID()).inventorySize = 0
 	end
-    print("Shop enabled for " .. npc:GetPlayerID())
+    --print("Shop enabled for " .. npc:GetPlayerID())
     PlayerResource:GetPlayer(npc:GetPlayerID()).EnabledShop = true
   end
 end
@@ -282,20 +277,23 @@ function GameMode:OnItemPickedUp(keys)
 end
 
 function RemoveRuneFromList(itemEntity, playerEntity)
-	if activeRunes[4] == itemEntity then
-		activeRunes[4] = nil
+	if globals.activeRunes[4] == itemEntity then
+		globals.activeRunes[4] = nil
 		playerEntity:RemoveItem(itemEntity)
 	end
-		if activeRunes[1] == itemEntity then
-		activeRunes[1] = nil
+	
+	if globals.activeRunes[1] == itemEntity then
+		globals.activeRunes[1] = nil
 		playerEntity:RemoveItem(itemEntity)
 	end
-		if activeRunes[2] == itemEntity then
-		activeRunes[2] = nil
+	
+	if globals.activeRunes[2] == itemEntity then
+		globals.activeRunes[2] = nil
 		playerEntity:RemoveItem(itemEntity)
 	end
-		if activeRunes[3] == itemEntity then
-		activeRunes[3] = nil
+	
+	if globals.activeRunes[3] == itemEntity then
+		globals.activeRunes[3] = nil
 		playerEntity:RemoveItem(itemEntity)
 	end
 end
@@ -324,13 +322,13 @@ function GameMode:OnItemPurchased( keys )
 
   if player.EnabledShop == false then
   	cancelTransaction = true
-  	FireGameEvent("show_center_message", { message = "You can't shop anymore.", duration = 1 })    
+  	Say(player, "You can't shop anymore.", false) 
   end
 
   --Cancel the event anyway if the player has no more inventory space
   if GetItemAmountInInventory(plyID) >= 7 and cancelTransaction ~= true then
   	cancelTransaction = true
-  	FireGameEvent("show_center_message", { message = "No more inventory space.", duration = 1 })    
+  	Say(player, "No more inventory space.", false) 
   end
 
   --Cancel transaction
@@ -352,7 +350,7 @@ function GameMode:OnItemPurchased( keys )
   	RevertInventory(plyID)
   	local newGold = (PlayerResource:GetGold(plyID) + itemcost)
   	PlayerResource:SetGold(plyID, newGold, false)
-  	FireGameEvent("show_center_message", { message = "You can't shop anymore.", duration = 1 })    
+  	Say(player, "You can't shop anymore.", false) 
   else
   	SaveInventory(plyID)
   end
@@ -505,7 +503,7 @@ function GameMode:OnPlayerPickHero(keys)
   local heroEntity = EntIndexToHScript(keys.heroindex)
   local player = EntIndexToHScript(keys.player)
 
-  connectedPlayers[player:GetPlayerID()] = nil
+  globals.connectedPlayers[player:GetPlayerID()] = nil
 end
 
 -- A player killed another player in a multi-team context
@@ -744,7 +742,7 @@ function GameMode:OnConnectFull(keys)
   
   -- The Player ID of the joining player
   local playerID = ply:GetPlayerID()
-  connectedPlayers[playerID] = ply
+  globals.connectedPlayers[playerID] = ply
   
   -- Update the user ID table with this user
   self.vUserIds[keys.userid] = ply
@@ -776,52 +774,57 @@ end
 
 --Check for repick heroes
 function GameMode:OnThink()
-	--print("THINK TIME")
-  	for _,ply in pairs(connectedPlayers) do
+	print("THINK TIME")
+  	for _,ply in pairs(globals.connectedPlayers) do
 	    local playerID = ply:GetPlayerID()
-	    if PlayerResource:IsValidPlayerID(playerID) and PlayerResource:HasRepicked(ply:GetPlayerID()) == true and ply:GetAssignedHero() == nil and repickedPlayer[playerID] ~= true then
+	    if PlayerResource:IsValidPlayerID(playerID) and PlayerResource:HasRepicked(ply:GetPlayerID()) == true and ply:GetAssignedHero() == nil and globals.repickedPlayer[playerID] ~= true then
 	    	ply:MakeRandomHeroSelection()
-	    	selectedHeroes[playerID] = ply:GetAssignedHero()
-	    	repickedPlayer[playerID] = true
+	    	globals.selectedHeroes[playerID] = ply:GetAssignedHero()
+	    	globals.repickedPlayer[playerID] = true
 	    end
 	end
 
-	currentRuneSpawnTime = currentRuneSpawnTime + 0.2
-	--print(currentRuneSpawnTime)
+	if globals.spawnRunes == false then
+		print("Spawn runes is false")
+	else
 
-	if currentRuneSpawnTime >= RUNE_SPAWN_TIME then
+		globals.currentRuneSpawnTime = globals.currentRuneSpawnTime + 0.2
+		print(globals.currentRuneSpawnTime)
 
-		--Remove all old runes
-		if activeRunes[1] ~= nil then
-			activeRunes[1]:GetContainer():RemoveSelf()
+		if globals.currentRuneSpawnTime >= 30 then
+
+			--Remove all old runes
+			if globals.activeRunes[1] ~= nil then
+				globals.activeRunes[1]:GetContainer():RemoveSelf()
+			end
+
+			if globals.activeRunes[2] ~= nil then
+				globals.activeRunes[2]:GetContainer():RemoveSelf()
+			end
+
+			if globals.activeRunes[3] ~= nil then
+				globals.activeRunes[3]:GetContainer():RemoveSelf()
+			end
+
+			if globals.activeRunes[4] ~= nil then
+				globals.activeRunes[4]:GetContainer():RemoveSelf()
+			end
+
+			--Spawn new runes
+			globals.activeRunes = {
+				[1] = GetRandomRune(),
+				[2] = GetRandomRune(),
+				[3] = GetRandomRune(),
+				[4] = GetRandomRune()
+			}
+			CreateItemOnPositionSync(Vector(3200,3584,160), globals.activeRunes[1])
+			CreateItemOnPositionSync(Vector(-2464,-2144,224), globals.activeRunes[2])
+			CreateItemOnPositionSync(Vector(3468,2688,160), globals.activeRunes[3])
+			CreateItemOnPositionSync(Vector(-1216,-896,160), globals.activeRunes[4])
+			print("Spawned rune ")
+
+			globals.currentRuneSpawnTime = 0
 		end
-
-		if activeRunes[2] ~= nil then
-			activeRunes[2]:GetContainer():RemoveSelf()
-		end
-
-		if activeRunes[3] ~= nil then
-			activeRunes[3]:GetContainer():RemoveSelf()
-		end
-
-		if activeRunes[4] ~= nil then
-			activeRunes[4]:GetContainer():RemoveSelf()
-		end
-
-		--Spawn new runes
-		activeRunes = {
-			[1] = GetRandomRune(),
-			[2] = GetRandomRune(),
-			[3] = GetRandomRune(),
-			[4] = GetRandomRune()
-		}
-		CreateItemOnPositionSync(Vector(3200,3584,160), activeRunes[1])
-		CreateItemOnPositionSync(Vector(-2464,-2144,224), activeRunes[2])
-		CreateItemOnPositionSync(Vector(3468,2688,160), activeRunes[3])
-		CreateItemOnPositionSync(Vector(-1216,-896,160), activeRunes[4])
-		print("Spawned rune ")
-
-		currentRuneSpawnTime = 0
 	end
   	return 0.2
 end
@@ -847,7 +850,7 @@ function PlayerLeaveShop(keys)
 	local playerID = keys.activator:GetPlayerOwnerID()
 
 	if PlayerResource:GetPlayer(playerID).EnabledShop ~= false then
-		FireGameEvent("show_center_message", { message = "You have left the shop.", duration = 3 }) 
+		Say(PlayerResource:GetPlayer(playerID), "You have left the shop.", false) 
 	end   
 
 	PlayerResource:GetPlayer(playerID).EnabledShop = false

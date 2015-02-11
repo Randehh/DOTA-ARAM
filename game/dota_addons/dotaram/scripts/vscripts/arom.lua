@@ -1,5 +1,6 @@
 print ('[AROM] AROM.lua' )
 local globals = require("globals")
+require("timers")
 
 require('lib.statcollection')
 statcollection.addStats({
@@ -136,7 +137,78 @@ function GameMode:OnAllPlayersLoaded()
 
 	--Also spawn a popup with instructions
   	ShowGenericPopup( "#popup_title_tutorial", "#popup_body_tutorial", "", "", DOTA_SHOWGENERICPOPUP_TINT_SCREEN )
-end
+
+  --Check for repick heroes, runes and gold
+  Timers:CreateTimer(
+    function()
+      --print("Thinking...")
+        for _,ply in pairs(globals.connectedPlayers) do
+          local playerID = ply:GetPlayerID()
+            if PlayerResource:IsValidPlayerID(playerID) and PlayerResource:HasRepicked(ply:GetPlayerID()) == true and ply:GetAssignedHero() == nil and globals.repickedPlayer[playerID] ~= true then
+              ply:MakeRandomHeroSelection()
+              globals.selectedHeroes[playerID] = ply:GetAssignedHero()
+              globals.repickedPlayer[playerID] = true
+            end
+        end
+
+        if globals.spawnRunes == false then
+          --print("Spawn runes is false")
+        else
+
+          print(globals.currentRuneSpawnTime)
+          globals.currentRuneSpawnTime = globals.currentRuneSpawnTime + 1
+          --print(globals.currentRuneSpawnTime)
+
+          if globals.currentRuneSpawnTime >= 30 then
+
+            --Remove all old runes
+            if globals.activeRunes[1] ~= nil then
+              globals.activeRunes[1]:GetContainer():RemoveSelf()
+            end
+
+            if globals.activeRunes[2] ~= nil then
+              globals.activeRunes[2]:GetContainer():RemoveSelf()
+            end
+
+            if globals.activeRunes[3] ~= nil then
+              globals.activeRunes[3]:GetContainer():RemoveSelf()
+            end
+
+            if globals.activeRunes[4] ~= nil then
+              globals.activeRunes[4]:GetContainer():RemoveSelf()
+            end
+
+            --Spawn new runes
+            globals.activeRunes = {
+              [1] = GetRandomRune(),
+              [2] = GetRandomRune(),
+              [3] = GetRandomRune(),
+              [4] = GetRandomRune()
+            }
+            CreateItemOnPositionSync(Vector(3200,3584,160), globals.activeRunes[1]) -- Dire outer
+            CreateItemOnPositionSync(Vector(1472,1664,160), globals.activeRunes[2]) -- Dire inner
+            CreateItemOnPositionSync(Vector(-2464,-2144,160), globals.activeRunes[3]) -- Radiant outer
+            CreateItemOnPositionSync(Vector(-480,-288,160), globals.activeRunes[4]) -- Radiant inner
+            --print("Spawned rune ")
+
+            globals.currentRuneSpawnTime = 0
+          end
+
+          globals.goldTimer = globals.goldTimer + 1
+          --print(globals.goldTimer)
+          if globals.goldTimer >= 1 then
+            for _,ply in pairs(globals.connectedPlayers) do
+                local playerID = ply:GetPlayerID()
+                PlayerResource:SetGold(playerID, PlayerResource:GetReliableGold(playerID) + 3, true)
+            end
+
+            globals.goldTimer = 0
+          end
+        end
+      return 1
+    end
+  )
+  end
 
 --[[
   This function is called once and only once for every player when they spawn into the game for the first time.  It is also called
@@ -576,7 +648,6 @@ function GameMode:InitGameMode()
   GameRules:SetHeroMinimapIconScale( MINIMAP_ICON_SIZE )
   GameRules:SetCreepMinimapIconScale( MINIMAP_CREEP_ICON_SIZE )
   GameRules:SetRuneMinimapIconScale( MINIMAP_RUNE_ICON_SIZE )
-  GameRules:GetGameModeEntity():SetThink( "OnThink", "GameRules", 0, self )
   print('[AROM] GameRules set')
 
   InitLogFile( "log/AROM.txt","")
@@ -767,75 +838,6 @@ function GameMode:ExampleConsoleCommand()
   end
 
   print( '*********************************************' )
-end
-
---Check for repick heroes
-function GameMode:OnThink()
-
-  --print("Thinking...")
-  for _,ply in pairs(globals.connectedPlayers) do
-	  local playerID = ply:GetPlayerID()
-	    if PlayerResource:IsValidPlayerID(playerID) and PlayerResource:HasRepicked(ply:GetPlayerID()) == true and ply:GetAssignedHero() == nil and globals.repickedPlayer[playerID] ~= true then
-	    	ply:MakeRandomHeroSelection()
-	    	globals.selectedHeroes[playerID] = ply:GetAssignedHero()
-	    	globals.repickedPlayer[playerID] = true
-	    end
-	end
-
-	if globals.spawnRunes == false then
-		--print("Spawn runes is false")
-	else
-
-		globals.currentRuneSpawnTime = globals.currentRuneSpawnTime + 0.2
-		--print(globals.currentRuneSpawnTime)
-
-		if globals.currentRuneSpawnTime >= 30 then
-
-			--Remove all old runes
-			if globals.activeRunes[1] ~= nil then
-				globals.activeRunes[1]:GetContainer():RemoveSelf()
-			end
-
-			if globals.activeRunes[2] ~= nil then
-				globals.activeRunes[2]:GetContainer():RemoveSelf()
-			end
-
-			if globals.activeRunes[3] ~= nil then
-				globals.activeRunes[3]:GetContainer():RemoveSelf()
-			end
-
-			if globals.activeRunes[4] ~= nil then
-				globals.activeRunes[4]:GetContainer():RemoveSelf()
-			end
-
-			--Spawn new runes
-			globals.activeRunes = {
-				[1] = GetRandomRune(),
-				[2] = GetRandomRune(),
-				[3] = GetRandomRune(),
-				[4] = GetRandomRune()
-			}
-			CreateItemOnPositionSync(Vector(3200,3584,160), globals.activeRunes[1]) -- Dire outer
-			CreateItemOnPositionSync(Vector(1472,1664,160), globals.activeRunes[2]) -- Dire inner
-			CreateItemOnPositionSync(Vector(-2464,-2144,160), globals.activeRunes[3]) -- Radiant outer
-			CreateItemOnPositionSync(Vector(-480,-288,160), globals.activeRunes[4]) -- Radiant inner
-			--print("Spawned rune ")
-
-			globals.currentRuneSpawnTime = 0
-		end
-
-    globals.goldTimer = globals.goldTimer + 0.2
-    --print(globals.goldTimer)
-    if globals.goldTimer >= 1 then
-      for _,ply in pairs(globals.connectedPlayers) do
-          local playerID = ply:GetPlayerID()
-          PlayerResource:SetGold(playerID, PlayerResource:GetReliableGold(playerID) + 3, true)
-      end
-
-      globals.goldTimer = 0
-    end
-	end
-  	return 0.2
 end
 
 function GetRandomRune()

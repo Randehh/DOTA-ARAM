@@ -614,15 +614,32 @@ function GameMode:OnEntityKilled( keys )
   end
 
   if killedUnit:IsRealHero() then 
-    print ("KILLEDKILLER: " .. killedUnit:GetName() .. " -- " .. killerEntity:GetName())
-    print("Unit bounty: " .. killedUnit:GetGoldBounty())
+    --print ("KILLEDKILLER: " .. killedUnit:GetName() .. " -- " .. killerEntity:GetName())
+    --print("Unit bounty: " .. killedUnit:GetGoldBounty())
     if SHOW_KILLS_ON_TOPBAR then
       GameRules:GetGameModeEntity():SetTopBarTeamValue ( DOTA_TEAM_BADGUYS, self.nDireKills )
       GameRules:GetGameModeEntity():SetTopBarTeamValue ( DOTA_TEAM_GOODGUYS, self.nRadiantKills )
     end
   end
 
-  -- Put code here to handle when an entity gets killed
+  if string.find(killedUnit:GetName(), "creep") then
+   --print("CREEP KILLED")
+    --1300 
+    local units = FindUnitsInRadius(killerEntity:GetTeamNumber(),
+                              killerEntity:EyePosition(),
+                              nil,
+                              1300, --xp range
+                              DOTA_UNIT_TARGET_TEAM_FRIENDLY,
+                              DOTA_UNIT_TARGET_HERO,
+                              DOTA_UNIT_TARGET_FLAG_NONE,
+                              FIND_ANY_ORDER,
+                              false)
+
+  for _,unit in pairs(units) do
+    unit:AddExperience(killedUnit:GetDeathXP(), false, false)
+    --print("Adding ".. killedUnit:GetDeathXP() .. " exp to " .. unit:GetName())
+  end
+  end
 end
 
 
